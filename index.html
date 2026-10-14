@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>工具王 TOOL KING</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#1e2430;color:#f2f2f2;padding:12px 12px 40px}
+h1{font-size:18px;margin:0 0 8px;text-align:center;letter-spacing:.1em}
+.sub{font-size:12px;text-align:center;color:#aab;margin-bottom:10px}
+.side{background:#2a3242;border-radius:10px;padding:10px;margin-bottom:10px}
+.side h2{font-size:13px;margin:0 0 6px;color:#9fb4d8}
+.stats{font-size:13px;margin-bottom:8px}
+.stats b{color:#ffd166}
+.field{min-height:92px;display:flex;gap:8px;align-items:center}
+.hand{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:block;width:100%;padding:14px;margin-top:8px;font-size:16px;font-weight:700;border:0;border-radius:10px;background:#ffd166;color:#222;cursor:pointer}
+.btn.sub2{background:#47506a;color:#fff;font-size:14px;padding:10px}
+.result{background:#3a2f48;border-radius:10px;padding:10px;margin-bottom:10px;font-size:14px;line-height:1.6}
+.result .big{font-size:17px;font-weight:700;color:#ffd166}
+.vs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:8px 0}
+.over{background:#2f4a3a}
+.small{font-size:11px;color:#9aa}
+.card{width:104px;display:flex;flex-direction:column;overflow:hidden;padding:0;border:2px solid var(--hc);border-radius:12px;background:#fff;color:#1d2330;font-size:12px;text-align:center;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.card.g{--hc:#d9534f;--ht:#9c2d29;--hl:#ffe9e6}
+.card.c{--hc:#2f9a56;--ht:#1b6638;--hl:#e4f6e8}
+.card.p{--hc:#3b73c4;--ht:#224d92;--hl:#e6f0ff}
+.card .hd{display:flex;justify-content:center;align-items:center;gap:5px;padding:3px 0;background:var(--hc);color:#fff;font-size:13px;font-weight:800;letter-spacing:.08em}
+.card .hi{font-size:17px;line-height:1}
+.card .art{background:var(--hl)}
+.card .art svg{display:block;width:100%;height:auto}
+.card .nm{display:flex;align-items:center;justify-content:center;min-height:2.7em;padding:3px 3px 0;font-size:13px;font-weight:800;line-height:1.25}
+.card .nm.long{font-size:10.5px;letter-spacing:-.02em;padding-inline:0}
+.card .tp{padding:2px 4px 6px}
+.card .tp span{display:inline-block;padding:1px 9px;border:1.5px solid var(--hc);border-radius:99px;background:var(--hl);color:var(--ht);font-size:11px;font-weight:800;white-space:nowrap}
+.card .vals{display:grid;grid-template-columns:1fr 1fr}
+.card .v{padding:3px 0 4px}
+.card .v i{display:block;font-size:10px;font-style:normal;font-weight:700}
+.card .v b{display:block;font-size:17px;line-height:1.15;font-variant-numeric:tabular-nums}
+.card .v.w{background:#ffeaa7;color:#6b4300}
+.card .v.l{background:#e3e6ee;color:#3a4152}
+.card.back{background:#47506a;border-color:#6b7594;color:#cfd6ea}
+button.card{font:inherit;cursor:pointer}
+button.card:active{transform:scale(.97)}
+button.card:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
+#app{padding-bottom:110px}
+.card .ic{font-size:22px}
+.card.back{min-height:214px;justify-content:center;align-items:center;background:repeating-linear-gradient(45deg,#4a5575,#4a5575 8px,#424c69 8px,#424c69 16px);border-color:#8d97b8;color:#e6ebff}
+.card.back .ic{font-size:34px}
+.card.back .bt{margin-top:6px;font-weight:800;letter-spacing:.15em}
+.card.sel{opacity:.4;outline:3px dashed #e0a020;outline-offset:1px}
+.flip{width:104px;perspective:700px}
+.flip .fi{display:grid;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .7s cubic-bezier(.3,.7,.3,1)}
+.flip .fb,.flip .ff{grid-area:1/1;display:flex;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flip .fb .card,.flip .ff .card{flex:1}
+.flip .ff{transform:rotateY(180deg)}
+.flip.open .fi{transform:rotateY(180deg)}
+.flip.shake .fi{animation:shake .45s ease-in-out infinite}
+@keyframes shake{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-4px) rotate(-3deg)}75%{transform:translateX(4px) rotate(3deg)}}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.07)}}
+.zone{border:2px solid var(--zc);border-radius:12px;overflow:hidden;background:var(--zbg)}
+.zone.cpu{--zc:#a64ac9;--zbg:#2f2342;--zt:#e7c3f7}
+.zone.me{--zc:#e0a020;--zbg:#3a2f18;--zt:#ffe2a0}
+.zbar{padding:4px 10px;background:var(--zc);color:#fff;font-size:13px;font-weight:800;letter-spacing:.06em}
+.zone.me .zbar{color:#2a1d00}
+.zbody{display:flex;gap:12px;align-items:flex-start;padding:10px}
+.zh{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.zt{font-size:16px;font-weight:800;color:var(--zt)}
+.row{display:flex;align-items:center;gap:6px;font-size:13px}
+.row span:first-child{min-width:3.2em;color:#aab3c8}
+.row b{font-size:17px;color:#fff;font-variant-numeric:tabular-nums}
+.pip{width:16px;height:21px;border:2px solid var(--zc);border-radius:3px 3px 9px 9px}
+.pip.on{background:var(--zc)}
+.slot{flex:none;width:104px;display:flex;flex-direction:column;gap:5px;align-items:center}
+.slot .sl{min-height:1.2em;font-size:11px;color:var(--zt);text-align:center}
+.slot .empty{display:flex;align-items:center;justify-content:center;width:104px;min-height:214px;border:2px dashed var(--zc);border-radius:12px;color:var(--zt);font-size:12px;opacity:.75}
+.slot.win .card{box-shadow:0 0 0 3px #ffd166,0 0 18px #ffd166}
+.slot.lose .flip,.slot.draw .flip{opacity:.5;filter:grayscale(.6)}
+.mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:70px;padding:12px 4px;text-align:center}
+.mid-t{font-size:13px;color:#cfd6ea}
+.mid-s{font-size:11px;color:#8c97b0}
+.mid-big{font-size:30px;font-weight:900;letter-spacing:.12em;color:#ffd166;animation:pulse .55s ease-in-out infinite alternate}
+.vd{display:flex;flex-direction:column;gap:8px;width:100%}
+.vj{font-size:14px}
+.vv{display:flex;justify-content:center;align-items:center;gap:14px;font-size:13px}
+.vv b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.vv i{display:block;font-size:11px;font-style:normal;color:#aab3c8}
+.vv .a{color:#ffe2a0}
+.vv .b{color:#e7c3f7}
+.vv .x{font-weight:800;color:#8c97b0}
+.vo{font-size:19px;font-weight:900;color:#ffd166}
+.vo.theirs{color:#e7c3f7}
+.vb{font-size:12px;color:#cfd6ea}
+.hz{margin-top:12px;padding:10px;border:2px solid #e0a020;border-radius:12px;background:#3a2f18}
+.hzt{margin-bottom:8px;font-size:13px;font-weight:800;color:#ffe2a0}
+.btn.sub2.on{outline:3px solid #e0a020}
+.btn.kai{font-size:22px;letter-spacing:.2em;animation:glow .8s ease-in-out infinite alternate}
+@keyframes glow{from{box-shadow:0 0 0 0 rgba(255,209,102,.0)}to{box-shadow:0 0 18px 4px rgba(255,209,102,.75)}}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#1e2430 65%,rgba(30,36,48,0))}
+.dock .btn{max-width:520px;margin:0 auto}
+@media (prefers-reduced-motion:reduce){.flip .fi{transition:none}.flip.shake .fi,.mid-big,.btn.kai{animation:none}}
+.menu{display:flex;flex-direction:column;gap:12px;padding-top:8px}
+.mn-t{text-align:center;font-size:15px;font-weight:800;letter-spacing:.1em;color:#ffd166}
+.menu .btn{padding:18px 12px;margin-top:0}
+.menu .btn small{display:block;margin-top:4px;font-size:12px;font-weight:600;opacity:.8}
+.menu .btn.alt{background:#a64ac9;color:#fff}
+.rules{padding:12px;border-radius:10px;background:#2a3242;font-size:12px;line-height:1.8;color:#cfd6ea}
+.rules b{color:#fff}
+.handoff{display:flex;flex-direction:column;align-items:center;gap:16px;padding:56px 14px;border:2px solid var(--zc);border-radius:12px;background:var(--zbg);text-align:center}
+.handoff.p0{--zc:#e0a020;--zbg:#3a2f18;--zt:#ffe2a0}
+.handoff.p1{--zc:#a64ac9;--zbg:#2f2342;--zt:#e7c3f7}
+.handoff .small{color:var(--zt)}
+.ho-t{font-size:22px;font-weight:900;color:var(--zt)}
+.ho-s{font-size:13px;color:#cfd6ea}
+.handoff .btn{background:var(--zc);color:#fff}
+.handoff.p0 .btn{color:#2a1d00}
+.hz.p1{border-color:#a64ac9;background:#2f2342}
+.hz.p1 .hzt{color:#e7c3f7}
+.btn.pass{font-size:16px}
+.btn.quit{margin-top:14px;padding:10px;border:1px solid #47506a;background:transparent;color:#aab3c8;font-size:13px;font-weight:600}
+.btn.open2{margin-top:14px}
+</style>
+</head>
+<body>
+<h1>工具王 TOOL KING</h1>
+<div class="sub">工具を知る者が、バトルを制す。（試作版 v0.6）<br>カードの数字：左＝ジャンケンに勝った時／右＝負け・あいこの時</div>
+<div id="app"></div>
+
+<script id="logic">
+var CARDS = [
+  {id:"hammer",name:"ハンマー",hand:"g",win:1000,lose:200,type:"一撃型"},
+  {id:"monkey",name:"モンキーレンチ",hand:"g",win:850,lose:350,type:"万能型"},
+  {id:"pliers",name:"ペンチ",hand:"g",win:750,lose:450,type:"バランス型"},
+  {id:"spanner",name:"スパナ",hand:"g",win:700,lose:400,type:"堅実型"},
+  {id:"vise",name:"万力",hand:"g",win:700,lose:500,type:"粘り型"},
+  {id:"hexkey",name:"六角レンチ",hand:"g",win:600,lose:500,type:"小粒型"},
+  {id:"micrometer",name:"マイクロメータ",hand:"c",win:1000,lose:200,type:"精密型の極み"},
+  {id:"caliper",name:"ノギス",hand:"c",win:900,lose:300,type:"精密型"},
+  {id:"nipper",name:"ニッパー",hand:"c",win:850,lose:350,type:"切れ味型"},
+  {id:"hacksaw",name:"金切りのこ",hand:"c",win:800,lose:400,type:"力技型"},
+  {id:"soldering",name:"はんだごて",hand:"c",win:700,lose:400,type:"じわじわ型"},
+  {id:"radiopliers",name:"ラジオペンチ",hand:"c",win:600,lose:500,type:"器用型"},
+  {id:"drillpress",name:"ボール盤",hand:"p",win:950,lose:250,type:"大型機械型"},
+  {id:"phillips",name:"プラスドライバー",hand:"p",win:750,lose:450,type:"定番型"},
+  {id:"squareruler",name:"さしがね",hand:"p",win:700,lose:500,type:"基準型"},
+  {id:"flathead",name:"マイナスドライバー",hand:"p",win:700,lose:450,type:"汎用型"},
+  {id:"file",name:"やすり",hand:"p",win:650,lose:550,type:"削り型"},
+  {id:"tester",name:"テスター",hand:"p",win:600,lose:500,type:"検査型"}
+];
+var BARRIER = 3, START_HAND = 1;
+
+function shuffle(a){
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+// a から見て 1:勝ち / -1:負け / 0:あいこ
+function judge(a, b){
+  if (a === b) return 0;
+  if ((a === "g" && b === "c") || (a === "c" && b === "p") || (a === "p" && b === "g")) return 1;
+  return -1;
+}
+function newPlayer(){
+  var p = { deck: shuffle(CARDS.slice()), barrier: [], hand: [], field: null, trash: [] };
+  var i;
+  for (i = 0; i < BARRIER; i++) p.barrier.push(p.deck.pop());
+  for (i = 0; i < START_HAND; i++) p.hand.push(p.deck.pop());
+  return p;
+}
+function newGame(){
+  return { p: [newPlayer(), newPlayer()], turn: 1, over: false, winner: null, reason: "" };
+}
+function draw(p){
+  if (p.deck.length === 0) return false;
+  p.hand.push(p.deck.pop());
+  return true;
+}
+// ドローフェイズ。山札切れならバリアが多い方の勝ち（同数は引き分け）
+function beginTurn(g){
+  var a = draw(g.p[0]), b = draw(g.p[1]);
+  if (!a || !b) {
+    g.over = true;
+    g.reason = "山札切れ（バリアの枚数で判定）";
+    var x = g.p[0].barrier.length, y = g.p[1].barrier.length;
+    g.winner = x > y ? 0 : (y > x ? 1 : -1);
+  }
+}
+// ch: 手札の番号、または -1（場のカードをそのまま使う）
+function play(g, ch0, ch1){
+  var ch = [ch0, ch1], i;
+  for (i = 0; i < 2; i++) {
+    var p = g.p[i];
+    if (ch[i] >= 0) {
+      if (p.field) p.trash.push(p.field);
+      p.field = p.hand.splice(ch[i], 1)[0];
+    }
+  }
+  var c0 = g.p[0].field, c1 = g.p[1].field;
+  var r = judge(c0.hand, c1.hand);
+  var v0 = (r === 1) ? c0.win : c0.lose;
+  var v1 = (r === -1) ? c1.win : c1.lose;
+  var w = v0 > v1 ? 0 : (v1 > v0 ? 1 : -1);
+  var res = { cards: [c0, c1], vals: [v0, v1], jk: r, winner: w, barrierLost: -1, over: false };
+  if (w !== -1) {
+    var l = 1 - w, lp = g.p[l];
+    if (lp.barrier.length === 0) {
+      g.over = true; g.winner = w; g.reason = "バリア0枚でバトルに負けた"; res.over = true;
+    } else {
+      lp.hand.push(lp.barrier.pop());
+      res.barrierLost = l;
+    }
+  }
+  for (i = 0; i < 2; i++) {
+    if (i !== w) { g.p[i].trash.push(g.p[i].field); g.p[i].field = null; }
+  }
+  g.turn++;
+  return res;
+}
+function cpuChoice(p){
+  if (p.field && Math.random() < 0.5) return -1;
+  return Math.floor(Math.random() * p.hand.length);
+}
+</script>
+
+<script id="ui">
+var ICON = { g: "✊", c: "✌", p: "✋" };
+var G = null, phase = "set", last = null;
+var app = document.getElementById("app");
+
+var HAND_NAME = {g:"グー", c:"チョキ", p:"パー"};
+var ART_BG = {g:"#ffe9e6", c:"#e4f6e8", p:"#e6f0ff"};
+var S="#a9b4c4", SD="#5f6b7d", K="#2b2f38", W="#b9855a", WD="#8a5f3a", R="#d9534f", Y="#f2b632", B="#3b73c4", O="#ff8a3d";
+function rot(a, inner){ return '<g transform="rotate(' + a + ' 40 30)">' + inner + '</g>'; }
+function ln(x1,y1,x2,y2,col,w){ return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"/>'; }
+function rc(x,y,w,h,r,col){ return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+r+'" fill="'+col+'"/>'; }
+function ci(x,y,r,col){ return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+col+'"/>'; }
+function plierBody(jawCol, gripCol, jawsFn){
+  return ln(40,30,50,57,gripCol,8) + ln(40,30,30,57,gripCol,8) + jawsFn() + ci(40,30,3.4,K) + ci(40,30,1.3,S);
+}
+var ART = {
+  hammer: function(){ return rot(-35, rc(37,12,6,46,3,W) + rc(37,12,2,46,1,WD) + rc(22,6,34,14,3,SD) + rc(22,6,34,5,2,S) + rc(50,8,10,10,2,S)); },
+  monkey: function(){ return '<g transform="translate(40 30) scale(1.25) translate(-40 -30)">' + rot(40, rc(36,24,8,32,3,S) + ln(40,40,40,52,SD,1.5) + rc(29,18,22,10,2,S) + rc(29,3,8,17,2,S) + rc(42,7,8,13,2,SD) + ci(47,27,4,SD) + ci(47,27,1.5,S)) + '</g>'; },
+  pliers: function(){ return plierBody(S, R, function(){ return ln(40,30,33,8,S,7) + ln(40,30,47,8,S,7) + ln(40,30,34,12,SD,2); }); },
+  spanner: function(bg){ return rot(30, rc(36,18,8,30,4,S) + ci(40,13,13,S) + rc(34,-2,12,15,0,bg) + ci(40,50,9,S) + rc(35,50,10,12,0,bg) + ci(40,13,0.1,S)); },
+  vise: function(){ return rc(16,44,48,9,2,K) + rc(20,24,40,20,3,R) + rc(22,12,12,14,2,S) + rc(46,12,12,14,2,SD) + ln(58,34,72,34,S,3.4) + ln(72,26,72,42,S,3.4) + ci(72,26,2.3,SD) + ci(72,42,2.3,SD); },
+  hexkey: function(){ return '<path d="M20 8 V46 H60" fill="none" stroke="'+SD+'" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 8 V46 H60" fill="none" stroke="'+S+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' + '<polygon points="60,41 64,43.5 64,48.5 60,51 56,48.5 56,43.5" fill="'+SD+'"/>'; },
+  micrometer: function(){ return '<path d="M52 10 H24 a10 10 0 0 0 -10 10 V44 a10 10 0 0 0 10 10 H42" fill="none" stroke="'+B+'" stroke-width="7" stroke-linecap="round"/>' + rc(48,10,8,9,1,K) + rc(50,19,4,9,0,S) + rc(46,28,12,16,2,S) + ln(46,32,58,32,SD,1) + ln(46,36,58,36,SD,1) + ln(46,40,58,40,SD,1) + rc(44,42,16,14,3,K) + rc(44,42,16,4,2,SD); },
+  caliper: function(){ var t=''; for (var x=14;x<70;x+=5) t += ln(x,28,x,(x%10===4?35:32),K,1); return rc(8,18,64,13,2,S) + t + rc(8,18,7,36,2,SD) + rc(30,18,18,12,2,B) + rc(30,30,7,22,2,B) + rc(34,18,10,5,1,K); },
+  nipper: function(){ return plierBody(S, Y, function(){ return ln(40,30,34,15,S,9) + ln(40,30,46,15,S,9) + ln(35,13,37,19,'#ffffff',2) + ln(45,13,43,19,'#ffffff',2); }); },
+  hacksaw: function(){ var teeth='M14 46 '; for (var x=14;x<68;x+=3) teeth += 'l1.5 4 l1.5 -4 '; return '<path d="M18 40 V12 H64 V40" fill="none" stroke="'+SD+'" stroke-width="4.5" stroke-linejoin="round"/>' + rc(14,40,54,6,1,S) + '<path d="'+teeth+' V46 H14 Z" fill="'+S+'"/>' + rc(5,22,13,26,5,R) + ln(8,28,15,28,'#a3302c',1.5) + ln(8,34,15,34,'#a3302c',1.5) + ln(8,40,15,40,'#a3302c',1.5); },
+  soldering: function(){ return rot(-30, rc(34,30,12,26,5,K) + rc(34,30,12,6,3,Y) + rc(38,16,4,16,1,S) + '<polygon points="37,16 43,16 40,3" fill="'+O+'"/>' + ci(46,4,1.6,Y) + ci(34,8,1.3,Y)); },
+  radiopliers: function(){ return plierBody(S, B, function(){ return ln(39,30,37.5,5,S,4) + ln(41,30,42.5,5,S,4) + ln(39.5,22,40.5,22,SD,1.5); }); },
+  drillpress: function(){ return rc(12,52,42,6,2,K) + rc(17,8,6,46,2,S) + rc(24,41,28,4,1,SD) + rc(14,5,36,15,3,B) + rc(36,20,6,8,1,K) + ln(39,28,39,41,S,1.8) + ln(48,12,63,22,S,2.6) + ci(63,22,3.2,R) + ci(25,12,2,K); },
+  phillips: function(){ return rot(35, rc(33,28,14,28,6,R) + ln(37,31,37,53,'#a3302c',1.5) + ln(43,31,43,53,'#a3302c',1.5) + rc(38.8,10,2.4,20,1,S) + ln(40,5,40,13,SD,4) + ln(36,9,44,9,SD,4)); },
+  squareruler: function(){ var t=''; var i; for (i=26;i<66;i+=4) t += ln(i,42,i,(i%8===2?47:45),K,1); for (i=12;i<42;i+=4) t += ln(22,i,(i%8===0?27:25),i,K,1); return '<path d="M12 4 H22 V42 H70 V52 H12 Z" fill="'+S+'" stroke="'+SD+'" stroke-width="1.5" stroke-linejoin="round"/>' + t; },
+  flathead: function(){ return rot(-35, rc(33,28,14,28,6,B) + ln(37,31,37,53,'#234f94',1.5) + ln(43,31,43,53,'#234f94',1.5) + rc(38.8,10,2.4,20,1,S) + '<polygon points="36,3 44,3 41.5,13 38.5,13" fill="'+SD+'"/>'); },
+  file: function(){ var h=''; for (var y=8;y<38;y+=4) h += ln(34,y,46,y+3,SD,1); return rot(-30, '<polygon points="33,40 47,40 44,3 36,3" fill="'+S+'" stroke="'+SD+'" stroke-width="1.2"/>' + h + rc(34,38,12,5,1,SD) + rc(35.5,43,9,15,4,W) + ln(38,46,38,55,WD,1.3)); },
+  tester: function(){ return rc(21,3,38,54,6,Y) + rc(26,8,28,15,2,K) + '<text x="40" y="20" text-anchor="middle" font-size="10" font-weight="700" font-family="ui-monospace,Menlo,monospace" fill="#8cff9a">8.8.8</text>' + ci(40,38,10,K) + ci(40,38,7.5,'#ffffff') + ln(40,38,45,33,R,1.8) + ci(40,38,1.6,K) + ci(30,52,2.2,K) + ci(40,52,2.2,R) + ci(50,52,2.2,K); }
+};
+function cardHTML(c, tag, act, extra){
+  var svg = '<svg viewBox="0 0 80 60" aria-hidden="true">' + ART[c.id](ART_BG[c.hand]) + '</svg>';
+  var inner = '<div class="hd"><span class="hi">' + ICON[c.hand] + '</span>' + HAND_NAME[c.hand] + '</div>' +
+    '<div class="art">' + svg + '</div>' +
+    '<div class="nm' + (c.name.length >= 8 ? ' long' : '') + '"><span>' + c.name + '</span></div>' +
+    '<div class="tp"><span>' + c.type + '</span></div>' +
+    '<div class="vals"><div class="v w"><i>勝ち</i><b>' + c.win + '</b></div><div class="v l"><i>負け</i><b>' + c.lose + '</b></div></div>';
+  if (tag === "button") return '<button class="card ' + c.hand + (extra ? ' ' + extra : '') + '" data-act="' + act + '" aria-label="' + c.name + '">' + inner + '</button>';
+  return '<div class="card ' + c.hand + '">' + inner + '</div>';
+}
+function backCardHTML(){
+  return '<div class="card back"><div class="ic">🔧</div><div class="bt">工具王</div></div>';
+}
+function flipHTML(card, open, extra){
+  return '<div class="flip' + (open ? ' open' : '') + (extra || '') + '"><div class="fi">' +
+    '<div class="fb">' + backCardHTML() + '</div><div class="ff">' + cardHTML(card) + '</div></div></div>';
+}
+function backOnlyHTML(){
+  return '<div class="flip"><div class="fi"><div class="fb">' + backCardHTML() + '</div></div></div>';
+}
+
+var MODE = "cpu";      // "cpu" = CPU対戦 / "pvp" = 1台を交代で使う2人対戦
+var viewer = 0;        // いま画面を見て選んでいるプレイヤー
+var sel = [null, null];// 各プレイヤーが選んだカード（手札の番号 / -1=キープ / null=未選択）
+var snap = null;       // 演出中に見せる、結果を反映する前の枚数
+var busy = false;
+var askMenu = false;
+var timers = [];
+function later(ms, fn){
+  var t = { fn: fn, done: false };
+  t.id = setTimeout(function(){ if (t.done) return; t.done = true; fn(); }, ms);
+  timers.push(t);
+}
+function skipAll(){
+  var ts = timers; timers = [];
+  for (var i = 0; i < ts.length; i++) {
+    if (!ts[i].done) { clearTimeout(ts[i].id); ts[i].done = true; ts[i].fn(); }
+  }
+}
+function who(i){ return MODE === "cpu" ? (i === 0 ? "あなた" : "CPU") : "プレイヤー" + (i + 1); }
+function zoneTitle(i){ return MODE === "cpu" ? (i === 0 ? "あなた" : "CPU（相手）") : "プレイヤー" + (i + 1); }
+function zoneBar(i){ return MODE === "cpu" ? (i === 0 ? "あなたのバトル場" : "相手のバトル場") : "プレイヤー" + (i + 1) + "のバトル場"; }
+
+function counts(i){
+  var p = G.p[i];
+  if (phase === "revealing" && snap) return snap[i];
+  return { barrier: p.barrier.length, deck: p.deck.length, hand: p.hand.length };
+}
+function pips(n){
+  var s = "";
+  for (var i = 0; i < BARRIER; i++) s += '<span class="pip' + (i < n ? ' on' : '') + '"></span>';
+  return s;
+}
+function slotHTML(i){
+  var p = G.p[i], inner, label = "", cls = "";
+  var showLast = last && (phase === "revealing" || phase === "result" || phase === "over");
+  if (showLast) {
+    var open = phase !== "revealing", w = last.winner;
+    if (open) {
+      cls = (w === i) ? " win" : (w === -1 ? " draw" : " lose");
+      label = (w === i) ? "★ 場に残る" : "→ トラッシュへ";
+    }
+    inner = flipHTML(last.cards[i], open, "");
+  } else if ((phase === "set" || phase === "confirm") && sel[i] !== null) {
+    inner = backOnlyHTML();
+    label = (i === viewer) ? "セット済み（裏向き）" : (MODE === "cpu" ? "CPUもセット済み" : "セット済み（裏向き）");
+  } else if (p.field) {
+    inner = cardHTML(p.field);
+    label = "場に残っているカード";
+  } else {
+    inner = '<div class="empty">カードなし</div>';
+  }
+  return '<div class="slot' + cls + '">' + inner + '<div class="sl">' + label + '</div></div>';
+}
+function zoneHTML(i){
+  var c = counts(i);
+  return '<section class="zone ' + (i === 0 ? 'me' : 'cpu') + '">' +
+    '<div class="zbar">' + zoneBar(i) + '</div>' +
+    '<div class="zbody"><div class="zh"><div class="zt">' + zoneTitle(i) + '</div>' +
+    '<div class="row"><span>バリア</span>' + pips(c.barrier) + '</div>' +
+    '<div class="row"><span>山札</span><b>' + c.deck + '</b></div>' +
+    '<div class="row"><span>手札</span><b>' + c.hand + '</b></div></div>' +
+    slotHTML(i) + '</div></section>';
+}
+function valLabel(side){
+  if (last.jk === 0) return "あいこ値";
+  var won = (side === 0) ? (last.jk === 1) : (last.jk === -1);
+  return won ? "勝ち値" : "負け値";
+}
+function verdictHTML(full){
+  var jk = last.jk === 1 ? who(0) + "の勝ち" : (last.jk === -1 ? who(1) + "の勝ち" : "あいこ");
+  var h = '<div class="vd"><div class="vj">' + ICON[last.cards[0].hand] + ' VS ' + ICON[last.cards[1].hand] + '　ジャンケン：<b>' + jk + '</b></div>' +
+    '<div class="vv"><span class="a">' + who(0) + '<b>' + last.vals[0] + '</b><i>' + valLabel(0) + '</i></span><span class="x">VS</span>' +
+    '<span class="b">' + who(1) + '<b>' + last.vals[1] + '</b><i>' + valLabel(1) + '</i></span></div>';
+  if (full) {
+    if (last.winner === -1) h += '<div class="vo">引き分け。両方トラッシュへ</div>';
+    else h += '<div class="vo ' + (last.winner === 0 ? 'mine' : 'theirs') + '">' + who(last.winner) + 'のバトル勝利！</div>';
+    if (last.barrierLost >= 0) h += '<div class="vb">' + who(last.barrierLost) + 'のバリアが1枚減って、手札に加わった</div>';
+  }
+  return h + '</div>';
+}
+function midHTML(){
+  if (phase === "revealing") return '<div class="mid-big">ご安全に！</div><div class="mid-s">タップで演出をとばす</div>';
+  if (last && (phase === "result" || phase === "over")) return verdictHTML(true);
+  if (phase === "confirm") return '<div class="mid-t">第' + G.turn + 'ターン　2人ともセット完了、ヨシ！<br>スマホを机に置いて、2人で画面を見てね</div>';
+  if (phase === "set") {
+    var t = '第' + G.turn + 'ターン　', picked = sel[viewer] !== null;
+    if (MODE === "cpu") t += picked ? 'セット完了、ヨシ！「ご安全に！」でオープン' : '手札からカードを選んでセット';
+    else if (!picked) t += who(viewer) + 'が選択中。手札からカードを選んでセット';
+    else if (viewer === 0) t += 'セット完了、ヨシ！プレイヤー2に渡してください';
+    else t += 'セット完了、ヨシ！「セット決定」を押してね';
+    return '<div class="mid-t">' + t + '</div>';
+  }
+  return '';
+}
+function handHTML(){
+  var pl = G.p[viewer], s = sel[viewer];
+  var title = MODE === "cpu" ? "あなたの手札" : "プレイヤー" + (viewer + 1) + "の手札";
+  var h = '<section class="hz p' + viewer + '"><div class="hzt">' + title + '（タップでセット）</div>';
+  if (pl.field) h += '<button class="btn sub2' + (s === -1 ? ' on' : '') + '" data-act="keep">場のカードをそのまま使う（キープ）</button><div style="height:8px"></div>';
+  h += '<div class="hand">';
+  for (var i = 0; i < pl.hand.length; i++) h += cardHTML(pl.hand[i], "button", "pick:" + i, (s === i) ? "sel" : "");
+  h += '</div>';
+  if (pl.field) h += '<div class="small" style="margin-top:6px">手札から選ぶと、場のカードはトラッシュに置かれます</div>';
+  return h + '</section>';
+}
+function overHTML(){
+  var msg = G.winner === -1 ? "引き分け" : (MODE === "cpu" ? (G.winner === 0 ? "あなたの勝ち！" : "CPUの勝ち…") : who(G.winner) + "の勝ち！");
+  return '<div class="result over"><div class="big">' + msg + '</div><div>' + G.reason + '</div>' +
+    '<button class="btn" data-act="restart">もう一度あそぶ</button></div>';
+}
+function menuHTML(){
+  return '<section class="menu"><div class="mn-t">モードをえらぶ</div>' +
+    '<button class="btn" data-act="cpu">CPUと対戦<small>ひとりで練習</small></button>' +
+    '<button class="btn alt" data-act="pvp">2人で対戦<small>1台のスマホを交代で使う</small></button>' +
+    '<div class="rules"><b>ルール</b><br>' +
+    '・バリアは3枚。バリアが0枚の状態でバトルに負けたら負け。<br>' +
+    '・ジャンケンに勝ったら左の数字、負け・あいこなら右の数字を使う。<br>' +
+    '・数字が大きい方が勝ち。負けた方はバリアを1枚失い、手札に加える。<br>' +
+    '・勝ったカードは場に残る。次のターンはそのまま使うか、手札と交換するか選べる。</div></section>';
+}
+function handoffHTML(){
+  var n = viewer + 1;
+  return '<section class="handoff p' + viewer + '"><div class="small">第' + G.turn + 'ターン</div>' +
+    '<div class="ho-t">プレイヤー' + n + 'に渡してください</div>' +
+    '<div class="ho-s">手札と選んだカードは、相手に見せないでね</div>' +
+    '<button class="btn" data-act="ready">プレイヤー' + n + 'です。カードを選ぶ</button></section>';
+}
+function render(){
+  var h = "";
+  if (phase === "menu") h = menuHTML();
+  else if (phase === "handoff") h = handoffHTML();
+  else {
+    h = zoneHTML(1 - viewer) +
+      '<div class="mid" id="mid"' + (phase === "revealing" ? ' data-act="skip"' : '') + '>' + midHTML() + '</div>' +
+      zoneHTML(viewer);
+    if (phase === "over") h += overHTML();
+    if (phase === "set" && !G.over) h += handHTML();
+    if (phase === "confirm") h += '<button class="btn kai open2" data-act="open">ご安全に！</button>';
+    if (phase === "result") h += '<button class="btn" data-act="next">次のターンへ</button>';
+    if (phase === "set" && sel[viewer] !== null) {
+      if (MODE === "pvp" && viewer === 0) h += '<div class="dock"><button class="btn pass" data-act="pass">セット完了。プレイヤー2に渡す</button></div>';
+      else if (MODE === "pvp") h += '<div class="dock"><button class="btn pass cf" data-act="confirm">セット決定</button></div>';
+      else h += '<div class="dock"><button class="btn kai" data-act="open">ご安全に！</button></div>';
+    }
+    if (phase !== "revealing") h += '<button class="btn quit" data-act="menu">' + (askMenu ? '本当に戻る？ もう一度タップ' : 'メニューに戻る') + '</button>';
+  }
+  app.innerHTML = h;
+}
+
+function startGame(mode){
+  skipAll(); timers = [];
+  MODE = mode || MODE;
+  G = newGame(); last = null; sel = [null, null]; viewer = 0; busy = false; snap = null; askMenu = false;
+  beginTurn(G);
+  phase = G.over ? "over" : (MODE === "pvp" ? "handoff" : "set");
+  render();
+}
+function pick(a){
+  if (phase !== "set" || G.over || busy) return;
+  if (sel[viewer] === a) { sel[viewer] = null; if (MODE === "cpu") sel[1] = null; }
+  else { sel[viewer] = a; if (MODE === "cpu" && sel[1] === null) sel[1] = cpuChoice(G.p[1]); }
+  render();
+}
+function openAt(idx){
+  var els = app.querySelectorAll(".flip");
+  if (els[idx]) { els[idx].classList.remove("shake"); els[idx].classList.add("open"); }
+}
+function reveal(){
+  if ((phase !== "set" && phase !== "confirm") || sel[0] === null || sel[1] === null || busy) return;
+  if (MODE === "pvp" && phase !== "confirm") return;
+  busy = true; timers = [];
+  snap = [0, 1].map(function(i){
+    var p = G.p[i];
+    return { barrier: p.barrier.length, deck: p.deck.length, hand: p.hand.length - (sel[i] >= 0 ? 1 : 0) };
+  });
+  last = play(G, sel[0], sel[1]);
+  sel = [null, null];
+  phase = "revealing";
+  render();
+  var mid = document.getElementById("mid");
+  if (mid && mid.scrollIntoView) { try { mid.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {} }
+  later(150, function(){ openAt(1); openAt(0); });   // 2枚を同時にオープン
+  later(1400, function(){
+    var m = document.getElementById("mid");
+    if (m) m.innerHTML = verdictHTML(false);
+  });
+  later(2500, function(){
+    busy = false; snap = null;
+    phase = G.over ? "over" : "result";
+    render();
+  });
+}
+function act(a){
+  if (a !== "menu") askMenu = false;
+  if (a === "cpu" || a === "pvp") { startGame(a); return; }
+  if (a === "restart") { startGame(MODE); return; }
+  if (a === "menu") {
+    if (!askMenu) { askMenu = true; render(); return; }
+    askMenu = false; skipAll(); timers = []; busy = false; phase = "menu"; render(); return;
+  }
+  if (a === "skip") { skipAll(); return; }
+  if (a === "ready") { if (phase === "handoff") { phase = "set"; render(); } return; }
+  if (a === "pass") { if (phase === "set" && MODE === "pvp" && viewer === 0 && sel[0] !== null) { viewer = 1; phase = "handoff"; render(); } return; }
+  if (a === "confirm") {
+    if (phase === "set" && MODE === "pvp" && viewer === 1 && sel[1] !== null) {
+      phase = "confirm"; render();
+      try { window.scrollTo(0, 0); } catch (e) {}
+    }
+    return;
+  }
+  if (a === "next") {
+    if (phase !== "result") return;
+    beginTurn(G); last = null; sel = [null, null]; viewer = 0;
+    phase = G.over ? "over" : (MODE === "pvp" ? "handoff" : "set");
+    render(); return;
+  }
+  if (a === "open") { reveal(); return; }
+  if (a === "keep") { if (phase === "set" && G.p[viewer].field) pick(-1); return; }
+  if (a.indexOf("pick:") === 0) pick(parseInt(a.split(":")[1], 10));
+}
+app.addEventListener("click", function(e){
+  var t = e.target;
+  while (t && t !== app) {
+    if (t.getAttribute && t.getAttribute("data-act")) { act(t.getAttribute("data-act")); return; }
+    t = t.parentNode;
+  }
+});
+phase = "menu";
+render();
+</script>
+</body>
+</html>
