@@ -120,11 +120,26 @@ button.card:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
 .btn.pass{font-size:16px}
 .btn.quit{margin-top:14px;padding:10px;border:1px solid #47506a;background:transparent;color:#aab3c8;font-size:13px;font-weight:600}
 .btn.open2{margin-top:14px}
+.winov{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,12,20,.88);--wc:#e0a020;--wn:#ffe2a0;overflow-y:auto}
+.winov.p1{--wc:#a64ac9;--wn:#e7c3f7}
+.confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.confetti i{position:absolute;top:-6vh;width:9px;height:15px;border-radius:2px;animation:fall linear infinite}
+@keyframes fall{from{transform:translateY(0) rotate(0)}to{transform:translateY(112vh) rotate(720deg)}}
+.wcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:340px;padding:26px 20px 20px;border:3px solid var(--wc);border-radius:18px;background:radial-gradient(circle at 50% 18%,rgba(255,209,102,.28),rgba(30,36,48,.98) 62%);box-shadow:0 0 40px rgba(255,209,102,.35)}
+.trophy{font-size:88px;line-height:1;filter:drop-shadow(0 6px 14px rgba(255,209,102,.6));animation:pop .9s cubic-bezier(.2,1.4,.4,1) both,bob 2.4s ease-in-out .9s infinite alternate}
+.wt{font-size:34px;font-weight:900;letter-spacing:.22em;color:#ffd166;text-shadow:0 2px 0 #8a5a00,0 0 18px rgba(255,209,102,.6);animation:rise .6s .35s ease-out both}
+.wn{font-size:22px;font-weight:800;color:var(--wn);animation:rise .6s .5s ease-out both}
+.ws{margin-bottom:6px;font-size:13px;letter-spacing:.2em;color:#cfd6ea}
+.wcard .btn{margin-top:0}
+@keyframes pop{0%{transform:scale(0) rotate(-25deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-6px)}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.confetti i,.trophy,.wt,.wn{animation:none}}
 </style>
 </head>
 <body>
 <h1>工具王 TOOL KING</h1>
-<div class="sub">工具を知る者が、バトルを制す。（試作版 v0.6）<br>カードの数字：左＝ジャンケンに勝った時／右＝負け・あいこの時</div>
+<div class="sub">工具を知る者が、バトルを制す。（試作版 v0.7）<br>カードの数字：左＝ジャンケンに勝った時／右＝負け・あいこの時</div>
 <div id="app"></div>
 
 <script id="logic">
@@ -287,6 +302,7 @@ var sel = [null, null];// 各プレイヤーが選んだカード（手札の番
 var snap = null;       // 演出中に見せる、結果を反映する前の枚数
 var busy = false;
 var askMenu = false;
+var winShow = false;   // 勝利演出を出すか
 var timers = [];
 function later(ms, fn){
   var t = { fn: fn, done: false };
@@ -386,8 +402,26 @@ function handHTML(){
   if (pl.field) h += '<div class="small" style="margin-top:6px">手札から選ぶと、場のカードはトラッシュに置かれます</div>';
   return h + '</section>';
 }
+function celebrates(){
+  return G.winner === 0 || (MODE === "pvp" && G.winner === 1);
+}
+function winHTML(){
+  var cols = ["#ffd166", "#ef476f", "#06d6a0", "#4cc9f0", "#c77dff", "#ff8a3d"], c = "", i;
+  for (i = 0; i < 28; i++) {
+    c += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + cols[i % cols.length] +
+      ';animation-duration:' + (2.6 + Math.random() * 2.4).toFixed(2) + 's;animation-delay:' + (-Math.random() * 4).toFixed(2) + 's"></i>';
+  }
+  var w = G.winner;
+  return '<div class="winov p' + w + '"><div class="confetti">' + c + '</div><div class="wcard">' +
+    '<div class="trophy">🏆</div><div class="wt">WINNER</div>' +
+    '<div class="wn">' + (MODE === "cpu" ? "あなた" : "プレイヤー" + (w + 1)) + '</div>' +
+    '<div class="ws">ご安全に！</div>' +
+    '<button class="btn" data-act="restart">もう一度あそぶ</button>' +
+    '<button class="btn sub2" data-act="board">盤面を見る</button>' +
+    '<button class="btn quit" data-act="menu">' + (askMenu ? '本当に戻る？ もう一度タップ' : 'メニューに戻る') + '</button></div></div>';
+}
 function overHTML(){
-  var msg = G.winner === -1 ? "引き分け" : (MODE === "cpu" ? (G.winner === 0 ? "あなたの勝ち！" : "CPUの勝ち…") : who(G.winner) + "の勝ち！");
+  var msg = G.winner === -1 ? "引き分け" : (MODE === "cpu" ? (G.winner === 0 ? "🏆 あなたの勝ち！" : "CPUの勝ち…") : "🏆 " + who(G.winner) + "の勝ち！");
   return '<div class="result over"><div class="big">' + msg + '</div><div>' + G.reason + '</div>' +
     '<button class="btn" data-act="restart">もう一度あそぶ</button></div>';
 }
@@ -427,15 +461,17 @@ function render(){
     }
     if (phase !== "revealing") h += '<button class="btn quit" data-act="menu">' + (askMenu ? '本当に戻る？ もう一度タップ' : 'メニューに戻る') + '</button>';
   }
+  if (phase === "over" && winShow && celebrates()) h += winHTML();
   app.innerHTML = h;
 }
 
 function startGame(mode){
   skipAll(); timers = [];
   MODE = mode || MODE;
-  G = newGame(); last = null; sel = [null, null]; viewer = 0; busy = false; snap = null; askMenu = false;
+  G = newGame(); last = null; sel = [null, null]; viewer = 0; busy = false; snap = null; askMenu = false; winShow = false;
   beginTurn(G);
   phase = G.over ? "over" : (MODE === "pvp" ? "handoff" : "set");
+  winShow = G.over;
   render();
 }
 function pick(a){
@@ -471,6 +507,7 @@ function reveal(){
     busy = false; snap = null;
     phase = G.over ? "over" : "result";
     render();
+    if (G.over) later(1000, function(){ winShow = true; render(); });
   });
 }
 function act(a){
@@ -479,9 +516,10 @@ function act(a){
   if (a === "restart") { startGame(MODE); return; }
   if (a === "menu") {
     if (!askMenu) { askMenu = true; render(); return; }
-    askMenu = false; skipAll(); timers = []; busy = false; phase = "menu"; render(); return;
+    askMenu = false; skipAll(); timers = []; busy = false; winShow = false; phase = "menu"; render(); return;
   }
   if (a === "skip") { skipAll(); return; }
+  if (a === "board") { winShow = false; render(); return; }
   if (a === "ready") { if (phase === "handoff") { phase = "set"; render(); } return; }
   if (a === "pass") { if (phase === "set" && MODE === "pvp" && viewer === 0 && sel[0] !== null) { viewer = 1; phase = "handoff"; render(); } return; }
   if (a === "confirm") {
@@ -495,6 +533,7 @@ function act(a){
     if (phase !== "result") return;
     beginTurn(G); last = null; sel = [null, null]; viewer = 0;
     phase = G.over ? "over" : (MODE === "pvp" ? "handoff" : "set");
+    winShow = G.over;
     render(); return;
   }
   if (a === "open") { reveal(); return; }
